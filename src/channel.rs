@@ -23,7 +23,11 @@ impl Message {
         })
     }
 
-    pub async fn send(&mut self, client: &Client, token: String) -> reqwest::Result<Response> {
+    pub async fn send(
+        &mut self,
+        client: &Client,
+        token: impl Into<String>,
+    ) -> reqwest::Result<Response> {
         let url = format!("{}/{}/messages", API_URL, self.channel_id);
         let nonce = match MessagePayload::get_nonce().context("Failed to create nonce") {
             Ok(n) => n,
@@ -36,7 +40,7 @@ impl Message {
 
         client
             .post(url)
-            .header(header::AUTHORIZATION, token)
+            .header(header::AUTHORIZATION, token.into())
             .json(&self.message_payload)
             .send()
             .await
