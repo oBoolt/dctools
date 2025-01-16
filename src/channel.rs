@@ -1,8 +1,47 @@
+use std::process;
+
 use anyhow::Context;
 use rand::Rng;
+use reqwest::{header, Client, Response};
 use serde::Serialize;
 
-use crate::cli::Args;
+const API_URL: &'static str = "https://discord.com/api/v9/channels";
+
+#[derive(Debug)]
+pub struct Message {
+    channel_id: String,
+    message_payload: MessagePayload,
+}
+
+impl Message {
+    pub fn new(channel_id: String, content: String) -> anyhow::Result<Self> {
+        let payload = MessagePayload::new(content).context("Failed to create message payload")?;
+
+        Ok(Self {
+            channel_id,
+            message_payload: payload,
+        })
+    }
+
+    pub async fn send(&mut self, client: &Client, token: String) -> reqwest::Result<Response> {
+        let url = format!("{}/{}/messages", API_URL, self.channel_id);
+        let nonce = match MessagePayload::get_nonce().context("Failed to create nonce") {
+            Ok(n) => n,
+            Err(e) => {
+                println!("[\x1b[31mError\x1b[0m] {}", e);
+                process::exit(1);
+            }
+        };
+        self.message_payload.nonce = nonce;
+
+        client
+            .post(url)
+            .header(header::AUTHORIZATION, token)
+            .json(&self.message_payload)
+            .send()
+            .await
+    }
+}
 
 #[derive(Serialize, Debug)]
 pub struct MessagePayload {
@@ -14,14 +53,12 @@ pub struct MessagePayload {
 }
 
 impl MessagePayload {
-    pub fn new(args: &Args) -> anyhow::Result<Self> {
-        let nonce = Self::get_nonce().context("Failed to generate nonce")?;
-
+    fn new(content: String) -> anyhow::Result<Self> {
         Ok(Self {
-            content: args.content.clone(),
+            content,
             flags: 0,
             mobile_network_type: String::from("unknown"),
-            nonce,
+            nonce: String::from("0"),
             tts: false,
         })
     }
