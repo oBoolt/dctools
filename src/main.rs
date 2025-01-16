@@ -1,10 +1,13 @@
-use clap::Parser;
-use discord_spammer::{cli::Args, config::Config};
-use std::process;
+use discord_spammer::{channel::Message, cli::Args, config::Config};
 
-fn main() {
-    let _config = match Config::load_config("./config.toml") {
-        Ok(x) => x,
+use clap::Parser;
+use reqwest::StatusCode;
+use std::{process, thread, time::Duration};
+
+#[tokio::main]
+async fn main() {
+    let config = match Config::load_config("./config.toml") {
+        Ok(c) => c,
         Err(e) => {
             println!("[\x1b[31mError\x1b[0m] {}", e);
             process::exit(1);
@@ -12,5 +15,45 @@ fn main() {
     };
 
     let args = Args::parse();
-    dbg!(args);
+    let mut message = match Message::new(args.id, args.content) {
+        Ok(m) => m,
+        Err(e) => {
+            println!("[\x1b[31mError\x1b[0m] {}", e);
+            process::exit(1);
+        }
+    };
+
+    let client = reqwest::Client::new();
+
+    loop {
+        let res = match message.send(&client, config.token.clone()).await {
+            Ok(r) => r,
+            Err(e) => {
+                println!("[\x1b[31mError\x1b[0m] {}", e);
+                process::exit(1);
+            }
+        };
+
+        dbg!(&res);
+
+        match res.status() {
+            StatusCode::OK => {
+                println!("[\x1b[36mSuccess\x1b[0m] Message sent successfully");
+            }
+            StatusCode::UNAUTHORIZED => {
+                println!("[\x1b[31mError\x1b[0m] Invalid token");
+                process::exit(1);
+            }
+            StatusCode::FORBIDDEN => {
+                println!("[\x1b[31mError\x1b[0m] You have been blocked");
+                process::exit(1);
+            }
+            _ => {
+                println!("[\x1b[33mUnkown\x1b[0m] Unknown response status code");
+                process::exit(1);
+            }
+        };
+
+        thread::sleep(Duration::from_millis(config.delay));
+    }
 }
