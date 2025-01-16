@@ -6,8 +6,12 @@ use std::{process, thread, time::Duration};
 
 #[tokio::main]
 async fn main() {
+    println!("[\x1b[36mInfo\x1b[0m] Loading config...");
     let config = match Config::load_config("./config.toml") {
-        Ok(c) => c,
+        Ok(c) => {
+            println!("[\x1b[36mInfo\x1b[0m] Config loaded successfully\n{}", c);
+            c
+        }
         Err(e) => {
             println!("[\x1b[31mError\x1b[0m] {}", e);
             process::exit(1);
@@ -26,7 +30,7 @@ async fn main() {
     let client = reqwest::Client::new();
 
     loop {
-        let res = match message.send(&client, config.token.clone()).await {
+        let res = match message.send(&client, &config.token).await {
             Ok(r) => r,
             Err(e) => {
                 println!("[\x1b[31mError\x1b[0m] {}", e);
@@ -36,7 +40,7 @@ async fn main() {
 
         match res.status() {
             StatusCode::OK => {
-                println!("[\x1b[36mSuccess\x1b[0m] Message sent successfully");
+                println!("[\x1b[32mSuccess\x1b[0m] Message sent");
             }
             StatusCode::UNAUTHORIZED => {
                 println!("[\x1b[31mError\x1b[0m] Invalid token");
@@ -53,7 +57,7 @@ async fn main() {
             status => {
                 dbg!(status);
                 dbg!(&res);
-                println!("[\x1b[33mUnkown\x1b[0m] Unknown response status code");
+                println!("[\x1b[33mWarning\x1b[0m] Unknown response status code");
                 process::exit(1);
             }
         };

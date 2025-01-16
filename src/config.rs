@@ -1,7 +1,7 @@
 use anyhow::Context;
 use serde::Deserialize;
 use std::{
-    fs,
+    fmt, fs,
     io::{self, Read},
     path,
 };
@@ -28,5 +28,11 @@ impl Config {
             token: config.token,
             delay: config.delay,
         })
+    }
+}
+
+impl fmt::Display for Config {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[\x1b[36mInfo\x1b[0m] delay = {}ms", self.delay)
     }
 }
