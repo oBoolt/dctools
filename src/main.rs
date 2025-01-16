@@ -34,8 +34,6 @@ async fn main() {
             }
         };
 
-        dbg!(&res);
-
         match res.status() {
             StatusCode::OK => {
                 println!("[\x1b[36mSuccess\x1b[0m] Message sent successfully");
@@ -48,7 +46,13 @@ async fn main() {
                 println!("[\x1b[31mError\x1b[0m] You have been blocked");
                 process::exit(1);
             }
-            _ => {
+            StatusCode::TOO_MANY_REQUESTS => {
+                println!("[\x1b[31mError\x1b[0m] Too many requests, it is recommended to increase 'delay' in the config file");
+                process::exit(1);
+            }
+            status => {
+                dbg!(status);
+                dbg!(&res);
                 println!("[\x1b[33mUnkown\x1b[0m] Unknown response status code");
                 process::exit(1);
             }
