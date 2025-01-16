@@ -14,11 +14,11 @@ pub struct MessagePayload {
 }
 
 impl MessagePayload {
-    pub fn new(args: Args) -> anyhow::Result<Self> {
+    pub fn new(args: &Args) -> anyhow::Result<Self> {
         let nonce = Self::get_nonce().context("Failed to generate nonce")?;
 
         Ok(Self {
-            content: args.content,
+            content: args.content.clone(),
             flags: 0,
             mobile_network_type: String::from("unknown"),
             nonce,
