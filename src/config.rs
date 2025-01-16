@@ -9,6 +9,7 @@ use std::{
 #[derive(Deserialize, Debug)]
 pub struct Config {
     pub token: String,
+    pub delay: u64,
 }
 
 impl Config {
@@ -25,6 +26,7 @@ impl Config {
 
         Ok(Self {
             token: config.token,
+            delay: config.delay,
         })
     }
 }
