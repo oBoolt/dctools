@@ -1,7 +1,7 @@
 use clap::Parser;
 
 #[derive(Parser, Debug)]
-#[command(name = "dc-spammer")]
+#[command(name = "dctools")]
 #[command(version, about, long_about = None)]
 pub struct Args {
     /// The channel id you want to spam

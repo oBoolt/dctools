@@ -1,4 +1,6 @@
-use dctools::{channel::Message, cli::Args, config::Config, error, info, success, warn};
+use dctools::{
+    channel::Message, cli::Args, config::Config, exit_error, info, success, utils, warn,
+};
 
 use clap::Parser;
 use reqwest::StatusCode;
@@ -13,8 +15,7 @@ async fn main() {
             c
         }
         Err(e) => {
-            error!("{}", e);
-            process::exit(1);
+            exit_error!("{}", e);
         }
     };
 
@@ -22,8 +23,7 @@ async fn main() {
     let mut message = match Message::new(args.id, args.content) {
         Ok(m) => m,
         Err(e) => {
-            error!("{}", e);
-            process::exit(1);
+            exit_error!("{}", e);
         }
     };
 
@@ -33,8 +33,7 @@ async fn main() {
         let res = match message.send(&client, &config.token).await {
             Ok(r) => r,
             Err(e) => {
-                error!("{}", e);
-                process::exit(1);
+                exit_error!("{}", e);
             }
         };
 
@@ -46,23 +45,21 @@ async fn main() {
                 success!("Message sent x{}", message.count);
             }
             StatusCode::UNAUTHORIZED => {
-                error!("Invalid token");
-                process::exit(1);
+                exit_error!("Invalid token");
             }
             StatusCode::FORBIDDEN => {
-                error!("You have been blocked");
-                process::exit(1);
+                exit_error!("You have been blocked");
             }
             StatusCode::TOO_MANY_REQUESTS => {
-                error!(
+                exit_error!(
                     "Too many requests, it is recommended to increase 'delay' in the config file"
                 );
-                process::exit(1);
             }
             status => {
                 dbg!(status);
                 dbg!(&res);
                 warn!("Unknown response status code");
+                utils::pause();
                 process::exit(1);
             }
         };
