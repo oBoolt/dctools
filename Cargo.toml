@@ -1,5 +1,5 @@
 [package]
-name = "discord-spammer"
+name = "dctools"
 version = "0.1.0"
 edition = "2021"
 description = "A tool developed for study purposes that spams a discord channel"

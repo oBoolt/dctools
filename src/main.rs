@@ -1,4 +1,4 @@
-use discord_spammer::{channel::Message, cli::Args, config::Config, error, info, success, warn};
+use dctools::{channel::Message, cli::Args, config::Config, error, info, success, warn};
 
 use clap::Parser;
 use reqwest::StatusCode;
