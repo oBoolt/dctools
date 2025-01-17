@@ -5,6 +5,8 @@ use rand::Rng;
 use reqwest::{header, Client, Response};
 use serde::Serialize;
 
+use crate::error;
+
 const API_URL: &'static str = "https://discord.com/api/v9/channels";
 
 #[derive(Debug)]
@@ -32,7 +34,7 @@ impl Message {
         let nonce = match MessagePayload::get_nonce().context("Failed to create nonce") {
             Ok(n) => n,
             Err(e) => {
-                println!("[\x1b[31mError\x1b[0m] {}", e);
+                error!("{}", e);
                 process::exit(1);
             }
         };
