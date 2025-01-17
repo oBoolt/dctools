@@ -1,5 +1,3 @@
-use std::process;
-
 use anyhow::Context;
 use rand::Rng;
 use reqwest::{header, Client, Response};

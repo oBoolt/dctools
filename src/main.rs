@@ -9,7 +9,7 @@ use std::{process, thread, time::Duration};
 #[tokio::main]
 async fn main() {
     info!("Loading config...");
-    let config = match Config::load_config("./config.toml") {
+    let config = match Config::new("./config.toml").await {
         Ok(c) => {
             info!("Config loaded successfully\n{}", c);
             c
@@ -30,7 +30,7 @@ async fn main() {
     let client = reqwest::Client::new();
 
     loop {
-        let res = match message.send(&client, &config.token).await {
+        let res = match message.send(&client, &config.content.token).await {
             Ok(r) => r,
             Err(e) => {
                 exit_error!("{}", e);
@@ -64,6 +64,6 @@ async fn main() {
             }
         };
 
-        thread::sleep(Duration::from_millis(config.delay));
+        thread::sleep(Duration::from_millis(config.content.delay));
     }
 }
