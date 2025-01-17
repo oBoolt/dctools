@@ -13,6 +13,7 @@ const API_URL: &'static str = "https://discord.com/api/v9/channels";
 pub struct Message {
     channel_id: String,
     message_payload: MessagePayload,
+    pub count: u16,
 }
 
 impl Message {
@@ -22,6 +23,7 @@ impl Message {
         Ok(Self {
             channel_id,
             message_payload: payload,
+            count: 0,
         })
     }
 
@@ -39,6 +41,7 @@ impl Message {
             }
         };
         self.message_payload.nonce = nonce;
+        self.count = self.count + 1;
 
         client
             .post(url)

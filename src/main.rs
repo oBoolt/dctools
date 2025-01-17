@@ -40,7 +40,10 @@ async fn main() {
 
         match res.status() {
             StatusCode::OK => {
-                success!("Message sent");
+                if message.count > 1 {
+                    print!("\x1b[1A\x1b[2K");
+                }
+                success!("Message sent x{}", message.count);
             }
             StatusCode::UNAUTHORIZED => {
                 error!("Invalid token");
