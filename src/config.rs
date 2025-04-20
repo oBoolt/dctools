@@ -6,7 +6,7 @@ use std::{
     path, process,
 };
 
-use crate::{exit_error, info, success};
+use crate::{exit_error, info, success, utils};
 
 const CONFIG_FILE_URL: &'static str =
     "https://raw.githubusercontent.com/oBoolt/dctools/refs/heads/main/config.template.toml";
@@ -21,6 +21,7 @@ pub struct Config {
 
 impl Config {
     pub async fn new<P: AsRef<path::Path>>(path: P) -> anyhow::Result<Self> {
+        info!("Loading config...");
         let config_content = ConfigContent::load_config(&path)
             .await
             .context("Failed to load config content")?;
@@ -51,6 +52,7 @@ impl ConfigContent {
             match Self::download_config_file(path).await {
                 Ok(_) => {
                     info!("Remember to change the token in the config file to your discord token");
+                    utils::pause();
                     process::exit(0);
                 }
                 Err(e) => exit_error!("{}", e),

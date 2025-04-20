@@ -8,7 +8,8 @@ use std::{process, thread, time::Duration};
 
 #[tokio::main]
 async fn main() {
-    info!("Loading config...");
+    let args = Args::parse();
+
     let config = match Config::new("./config.toml").await {
         Ok(c) => {
             info!("Config loaded successfully\n{}", c);
@@ -19,7 +20,6 @@ async fn main() {
         }
     };
 
-    let args = Args::parse();
     let mut message = match Message::new(args.id, args.content) {
         Ok(m) => m,
         Err(e) => {
