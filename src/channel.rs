@@ -15,11 +15,11 @@ pub struct Message {
 }
 
 impl Message {
-    pub fn new(channel_id: String, content: String) -> anyhow::Result<Self> {
+    pub fn new<S: Into<String>>(channel_id: S, content: S) -> anyhow::Result<Self> {
         let payload = MessagePayload::new(content).context("Failed to create message payload")?;
 
         Ok(Self {
-            channel_id,
+            channel_id: channel_id.into(),
             message_payload: payload,
             count: 0,
         })
@@ -59,9 +59,9 @@ pub struct MessagePayload {
 }
 
 impl MessagePayload {
-    fn new(content: String) -> anyhow::Result<Self> {
+    fn new<S: Into<String>>(content: S) -> anyhow::Result<Self> {
         Ok(Self {
-            content,
+            content: content.into(),
             flags: 0,
             mobile_network_type: String::from("unknown"),
             nonce: String::from("0"),
