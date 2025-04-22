@@ -1,4 +1,4 @@
-use crate::{commands::spam, config::Config};
+use crate::{commands::spam, config::Config, Result};
 use clap::{Args, Parser, Subcommand};
 
 #[derive(Debug, Parser)]
@@ -9,7 +9,7 @@ pub struct Cli {
 }
 
 impl Cli {
-    pub async fn exec(self, config: &Config) -> anyhow::Result<()> {
+    pub async fn exec(self, config: &Config) -> Result<()> {
         match self.command {
             Command::Spam(args) => spam::exec(config, args.id, args.content).await,
         }

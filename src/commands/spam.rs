@@ -1,32 +1,18 @@
 use reqwest::StatusCode;
-use std::{process, thread, time::Duration};
+use std::{thread, time::Duration};
 
 use crate::channel::Message;
 use crate::config::Config;
-use crate::utils;
-use crate::{exit_error, success, warn};
+use crate::success;
+use crate::{Error, ErrorKind, Result};
 
-pub async fn exec<S: Into<String>>(
-    config: &Config,
-    channel_id: S,
-    content: S,
-) -> anyhow::Result<()> {
-    let mut message = match Message::new(channel_id, content) {
-        Ok(m) => m,
-        Err(e) => {
-            exit_error!("{}", e);
-        }
-    };
+pub async fn exec<S: Into<String>>(config: &Config, channel_id: S, content: S) -> Result<()> {
+    let mut message = Message::new(channel_id, content);
 
     let client = reqwest::Client::new();
 
     loop {
-        let res = match message.send(&client, &config.content.token).await {
-            Ok(r) => r,
-            Err(e) => {
-                exit_error!("{}", e);
-            }
-        };
+        let res = message.send(&client, &config.content.token).await?;
 
         match res.status() {
             StatusCode::OK => {
@@ -36,22 +22,23 @@ pub async fn exec<S: Into<String>>(
                 success!("Message sent x{}", message.count);
             }
             StatusCode::UNAUTHORIZED => {
-                exit_error!("Invalid token");
+                return Err(Error::new(ErrorKind::SpamCommand, "invalid token"));
             }
             StatusCode::FORBIDDEN => {
-                exit_error!("You have been blocked");
+                return Err(Error::new(ErrorKind::SpamCommand, "you have been blocked"));
             }
             StatusCode::TOO_MANY_REQUESTS => {
-                exit_error!(
-                    "Too many requests, it is recommended to increase 'delay' in the config file"
-                );
+                return Err(Error::new(
+                    ErrorKind::SpamCommand,
+                    "too many requests, it is recommended to increase 'delay' in the config file",
+                ));
             }
             status => {
-                dbg!(status);
                 dbg!(&res);
-                warn!("Unknown response status code");
-                utils::pause();
-                process::exit(1);
+                return Err(Error::warn(format!(
+                    "unknown response status code: {}",
+                    status
+                )));
             }
         };
 

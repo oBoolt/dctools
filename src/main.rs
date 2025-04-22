@@ -1,4 +1,4 @@
-use dctools::{cli::Cli, config::Config, exit_error, info};
+use dctools::{cli::Cli, config::Config, error, exit_error, info, warn};
 
 use clap::Parser;
 
@@ -16,5 +16,18 @@ async fn main() {
         }
     };
 
-    let _ = cli.exec(&config).await;
+    if let Err(e) = cli.exec(&config).await {
+        match e.kind() {
+            dctools::ErrorKind::Warn => {
+                warn!("{e}");
+            }
+            _ => {
+                if e.exit() {
+                    exit_error!("{e}");
+                } else {
+                    error!("{e}");
+                }
+            }
+        }
+    };
 }
